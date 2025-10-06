@@ -46,18 +46,3 @@ redis-config:
   prefix: 'job-scheduler'
   enabled: true
   url: "redis://localhost:6379"
-
-management:
-  endpoints:
-    jmx:
-      exposure:
-        include: "*"
-    web:
-      exposure:
-        include: "*"
-    otlp:
-      metrics:
-        export:
-          enabled: false
-sms-config:
-  maxTemplateVariableSize: 30
