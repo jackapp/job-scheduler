@@ -35,28 +35,37 @@ public class JobScheduler {
         log.info("Job Scheduler is running");
         Optional<Lock> lock = customDistributedLock.acquireLockWithWait(JOB_PRODUCER_LOCK_ID, 1000L,true);
         if (lock.isPresent()) {
-            ProducerConfig producerConfig = producerConfigDao.findProducerConfById(jobProducerConfig.getConfigId());
-            long startTimestamp = getStartTimestamp(producerConfig,jobProducerConfig.getMaxHistoryAllowed());
-            long endTimestamp = TimeUtils.getEndOfNextMinute(DateTimeUtils.currentTimeMillis());
-            jobProducer.produceJobs(startTimestamp,endTimestamp,jobProducerConfig.getPageSize());
-            producerConfigDao.updateLastProducedTimestamp(producerConfig.getConfigId(),DateTimeUtils.currentTimeMillis());
-            lock.get().unlock();
+            try {
+                ProducerConfig producerConfig = producerConfigDao.findProducerConfById(jobProducerConfig.getConfigId());
+                long startTimestamp = getStartTimestamp(producerConfig);
+                long endTimestamp = TimeUtils.getEndOfNextMinute(DateTimeUtils.currentTimeMillis());
+                jobProducer.produceJobs(startTimestamp,endTimestamp,jobProducerConfig.getPageSize());
+                producerConfigDao.updateLastProducedTimestamp(producerConfig.getConfigId(),DateTimeUtils.currentTimeMillis());
+            } catch (Exception e) {
+                log.error("Exception occurred while scheduling for timestamp :{}",DateTimeUtils.currentTimeMillis(),e);
+                throw e;
+            } finally {
+                lock.get().unlock();
+            }
         } else {
             log.info("Couldnt acquire lock hence ignoring this schedule");
         }
     }
 
-    private long getStartTimestamp(ProducerConfig producerConfig,Long maxAllowedHistory) {
+    private long getStartTimestamp(ProducerConfig producerConfig) {
         Long currentTime = DateTimeUtils.currentTimeMillis();
         if (producerConfig==null || producerConfig.getLastProducedTimestamp()==null) {
             return currentTime;
         }
-        // Keep this configurable, if the timestamp is more than
-        if (currentTime-producerConfig.getLastProducedTimestamp()<=maxAllowedHistory) {
-            return producerConfig.getLastProducedTimestamp();
-        } else {
-            return currentTime-maxAllowedHistory;
-        }
+        return producerConfig.getLastProducedTimestamp();
+//        if (maxAllowedHistory==null||maxAllowedHistory==-1) {
+//            return producerConfig.getLastProducedTimestamp();
+//        }
+//        if (currentTime-producerConfig.getLastProducedTimestamp()<=maxAllowedHistory) {
+//            return producerConfig.getLastProducedTimestamp();
+//        } else {
+//            return currentTime-maxAllowedHistory;
+//        }
     }
 
 }

@@ -17,28 +17,28 @@ import java.util.Map;
 
 @Configuration
 public class WebClientConfig {
-
     @Bean
-    public WebClient webClient() {
+    public WebClient webClient(WebClientProperties props) {
         ConnectionProvider provider = ConnectionProvider.builder("custom")
-                .maxConnections(1000)
-                .pendingAcquireMaxCount(10000)
-                .pendingAcquireTimeout(Duration.ofSeconds(45))
-                .maxIdleTime(Duration.ofSeconds(100))
-                .maxLifeTime(Duration.ofSeconds(100))
-                .evictInBackground(Duration.ofSeconds(120))
+                .maxConnections(props.getMaxConnections())
+                .pendingAcquireMaxCount(props.getPendingAcquireMaxCount())
+                .pendingAcquireTimeout(Duration.ofSeconds(props.getPendingAcquireTimeoutSeconds()))
+                .maxIdleTime(Duration.ofSeconds(props.getMaxIdleTimeSeconds()))
+                .maxLifeTime(Duration.ofSeconds(props.getMaxLifeTimeSeconds()))
+                .evictInBackground(Duration.ofSeconds(props.getEvictInBackgroundSeconds()))
                 .build();
 
         HttpClient httpClient = HttpClient.create(provider)
-                .option(ChannelOption.CONNECT_TIMEOUT_MILLIS, 2000)
-                .option(ChannelOption.SO_KEEPALIVE, true)
-                .option(ChannelOption.TCP_NODELAY, true)
-                .responseTimeout(Duration.ofSeconds(120));
+                .option(ChannelOption.CONNECT_TIMEOUT_MILLIS, props.getConnectTimeoutMillis())
+                .option(ChannelOption.SO_KEEPALIVE, props.isTcpKeepAlive())
+                .option(ChannelOption.TCP_NODELAY, props.isTcpNoDelay())
+                .responseTimeout(Duration.ofSeconds(props.getResponseTimeoutSeconds()));
 
         return WebClient.builder()
                 .clientConnector(new ReactorClientHttpConnector(httpClient))
                 .build();
     }
+
 //
 //    public static void main(String[] args) throws InterruptedException {
 //        WebClient webClient = webClient();

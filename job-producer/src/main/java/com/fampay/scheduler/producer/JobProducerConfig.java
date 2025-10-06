@@ -12,5 +12,4 @@ import org.springframework.context.annotation.Configuration;
 public class JobProducerConfig {
     private String configId;
     private Integer pageSize=60;
-    private Long maxHistoryAllowed=300000L;
 }

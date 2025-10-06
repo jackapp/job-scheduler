@@ -12,6 +12,7 @@ import com.fampay.scheduler.models.entity.PagedJobs;
 import com.fampay.scheduler.producer.utils.JobExecutionUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.joda.time.DateTimeUtils;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
@@ -61,7 +62,7 @@ public class JobProducerImpl implements JobProducer {
                     log.error("Unable to produce job with id :{}",jobEntity.getId(),e);
                 }
             }
-        } while (!pagedJobs.getJobEntities().isEmpty());
+        } while (!pagedJobs.isLast());
     }
 
     /**

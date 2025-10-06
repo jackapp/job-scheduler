@@ -370,7 +370,6 @@ public class MongoDbHelper implements IMongoDbHelper {
                 for (String key : cursorList) {
                     cursorMap.put(key, lastDoc.get(key));
                 }
-
                 return PagedResult.<T>builder().results(results).cursorMap(cursorMap).lastPage(false).build();
             } else {
                 return PagedResult.<T>builder().results(results).cursorMap(cursorMap).lastPage(true).build();

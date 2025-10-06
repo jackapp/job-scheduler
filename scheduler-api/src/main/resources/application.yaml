@@ -13,6 +13,17 @@ server:
 job-producer-config:
   configId: 1
 
+webclient:
+  max-connections: 1000
+  pending-acquire-max-count: 10000
+  pending-acquire-timeout-seconds: 45
+  max-idle-time-seconds: 100
+  max-life-time-seconds: 100
+  evict-in-background-seconds: 120
+  connect-timeout-millis: 2000
+  response-timeout-seconds: 120
+  tcp-keep-alive: true
+  tcp-no-delay: true
 
 mongo-config:
   address: "localhost:27017"

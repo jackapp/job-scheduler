@@ -97,7 +97,7 @@ public class JobDaoImpl implements JobDao {
         List<String> cursorFields = List.of(NEXT_SCHEDULED_TIME_FIELD, "id");
         var sortOrder = ascending(cursorFields);
         PagedResult<JobEntity> jobEntityPagedResult = mongoDbHelper.getDocumentsPaginated(COLLECTION_NAME, finalFilter, sortOrder, pageSize, cursorFields, JobEntity.class);
-        return PagedJobs.builder().jobEntities(jobEntityPagedResult.getResults()).nextJobId((String) jobEntityPagedResult.getCursorMap().get(ID_FIELD))
+        return PagedJobs.builder().jobEntities(jobEntityPagedResult.getResults()).nextJobId((String) jobEntityPagedResult.getCursorMap().get(ID_FIELD)).last(jobEntityPagedResult.isLastPage())
                 .nextScheduledTimestamp((Long) jobEntityPagedResult.getCursorMap().get(NEXT_SCHEDULED_TIME_FIELD)).build();
     }
 

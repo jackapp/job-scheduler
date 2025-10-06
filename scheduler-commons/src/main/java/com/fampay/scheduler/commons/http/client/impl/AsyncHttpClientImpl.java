@@ -5,10 +5,7 @@ import com.fampay.scheduler.commons.http.dto.ApiRequest;
 import com.fampay.scheduler.commons.http.dto.ApiResponse;
 import lombok.Data;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
-import org.springframework.web.reactive.function.client.ClientResponse;
 import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Mono;
 
@@ -20,7 +17,6 @@ import java.time.Duration;
 public class AsyncHttpClientImpl implements AsyncHttpClient {
 
     private final WebClient webClient;
-
 
     @Override
     public Mono<ApiResponse> callApi(ApiRequest apiRequest) {
@@ -38,6 +34,7 @@ public class AsyncHttpClientImpl implements AsyncHttpClient {
                                     ))
                     .timeout(Duration.ofSeconds(apiRequest.getReadTimeout()))
                     .retry(apiRequest.getRetries());
+
             case "GET" -> webClient.get()
                     .uri(apiRequest.getUrl())
                     .exchangeToMono(clientResponse ->

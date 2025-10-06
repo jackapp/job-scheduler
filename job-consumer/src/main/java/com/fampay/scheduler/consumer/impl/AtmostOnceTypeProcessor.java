@@ -13,6 +13,7 @@ import com.fampay.scheduler.models.queue.JobMessagePayload;
 import com.fampay.scheduler.repository.JobExecutionDao;
 import com.fampay.scheduler.repository.dto.UpdateJobExecutionDto;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.joda.time.DateTimeUtils;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.http.HttpMethod;
@@ -23,6 +24,7 @@ import java.util.Optional;
 @Component
 @RequiredArgsConstructor
 @Qualifier("atmost_once_processor")
+@Slf4j
 public class AtmostOnceTypeProcessor implements JobTypeProcessor {
 
     private final IMessageConsumer messageConsumer;
@@ -39,10 +41,8 @@ public class AtmostOnceTypeProcessor implements JobTypeProcessor {
                 try {
                     jobExecutionDao.updateJobExecutionStatus(jobExecutionEntity.getExecutionId(), UpdateJobExecutionDto.builder()
                             .status(JobExecutionStatus.STARTED.name()).startTime(DateTimeUtils.currentTimeMillis()).build());
-                    asyncHttpClient.callApi(ApiRequest.builder().httpMethod(HttpMethod.valueOf(jobMessagePayload.getApiConfig().getHttpMethod()))
-                            .url(jobMessagePayload.getApiConfig().getUrl()).payload(jobMessagePayload.getApiConfig().getPayload()).readTimeout(jobMessagePayload.getApiConfig().getReadTimeoutMs())
-                            .build()).subscribe(apiResponse -> {
-                        handleResponse(jobMessagePayload, apiResponse.getHttpStatus() + "", apiResponse.getResponse(), messageId, queueName);
+                    asyncHttpClient.callApi(buildApiRequest(jobMessagePayload)).subscribe(apiResponse -> {
+                        handleResponse(jobMessagePayload, apiResponse.getHttpStatus(), apiResponse.getResponse());
                     });
                 } catch (Exception e) {
                     jobExecutionDao.updateJobExecutionStatus(jobMessagePayload.getExecutionId(), UpdateJobExecutionDto.builder().endTime(DateTimeUtils.currentTimeMillis())
@@ -50,8 +50,11 @@ public class AtmostOnceTypeProcessor implements JobTypeProcessor {
                                     JobExecutionResponse.builder()
                                             .response(e.getMessage()).build()).build());
                 }
+            } else {
+                log.error("Cannot reprocess as it is a atmost once type processor :{}",jobMessagePayload.getExecutionId());
             }
         }
+        //Delete the message as soon as we get an ack that the request has been fired.
         messageConsumer.deleteMessage(queueName, messageId);
     }
 
@@ -60,13 +63,17 @@ public class AtmostOnceTypeProcessor implements JobTypeProcessor {
         return JobGuarantee.ATMOST_ONE;
     }
 
-    private void handleResponse(JobMessagePayload jobMessagePayload, String statusCode, String body, String messageId, String queueName) {
+    private void handleResponse(JobMessagePayload jobMessagePayload, Integer statusCode, String body) {
         jobExecutionDao.updateJobExecutionStatus(jobMessagePayload.getExecutionId(), UpdateJobExecutionDto.builder().endTime(DateTimeUtils.currentTimeMillis())
                 .status(JobExecutionStatus.FINISHED.name()).executionResponse(
                         JobExecutionResponse.builder()
-                                .status(statusCode)
+                                .status(statusCode+"")
                                 .response(body).build()).build());
-        messageConsumer.deleteMessage(queueName, messageId);
+    }
 
+    private ApiRequest buildApiRequest(JobMessagePayload jobMessagePayload) {
+       return ApiRequest.builder().httpMethod(HttpMethod.valueOf(jobMessagePayload.getApiConfig().getHttpMethod()))
+                .url(jobMessagePayload.getApiConfig().getUrl()).payload(jobMessagePayload.getApiConfig().getPayload()).readTimeout(jobMessagePayload.getApiConfig().getReadTimeoutMs())
+                .build();
     }
 }
