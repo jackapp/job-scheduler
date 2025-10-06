@@ -1,41 +1,28 @@
-// Switch to admin to create the new user and DB
-db = db.getSiblingDB('admin');
 
-// Create the 'job-scheduler' database
-const dbName = 'job-scheduler';
-const appUser = 'app_user';
-const appPass = 'Uu7gYX8TiuaO0XDL';
+// Switch to the desired database
+db = db.getSiblingDB('job-scheduler');
 
-// Create the user with readWrite role on job-scheduler
+// Create application user with read/write permissions
 db.createUser({
-  user: appUser,
-  pwd: appPass,
+  user: "app_user",
+  pwd: "Uu7gYX8TiuaO0XDL",
   roles: [
-    { role: 'readWrite', db: dbName }
+    {
+      role: "readWrite",
+      db: "job-scheduler"
+    }
   ]
 });
 
-print(`✅ User '${appUser}' created with readWrite on '${dbName}'`);
-
-// Switch to job-scheduler DB
-db = db.getSiblingDB(dbName);
-
 // Create collections
-const collections = ['producer_config', 'jobs', 'job_executions'];
-collections.forEach(name => {
-  db.createCollection(name);
-  print(`📁 Created collection: ${name}`);
-});
+db.createCollection("jobs");
+db.createCollection("job_executions");
+db.createCollection("producer_config");
 
-// Insert initial config into producer_config
+// Insert initial data into producer_config
 db.producer_config.insertOne({
   _id: "1",
   configId: "1",
-  lastProducedTimestamp: 1728058611000
+  lastProducedTimestamp: 1759740104824
 });
-
-print("🚀 Inserted initial document into producer_config");
-
-// Confirmation
-print("🎯 Database initialization complete!");
 

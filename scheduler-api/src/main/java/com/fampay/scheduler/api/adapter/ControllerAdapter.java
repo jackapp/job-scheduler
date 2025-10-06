@@ -57,6 +57,7 @@ public class ControllerAdapter {
     }
 
     public static JobExecutionHistoryResponse getJobExecutionHistoryResponseFromDto(JobExecutionHistory jobExecutionHistory) {
+        if (jobExecutionHistory==null) return JobExecutionHistoryResponse.builder().executionResults(new ArrayList<>()).build();
         JobExecutionHistoryResponse jobExecutionHistoryResponse = JobExecutionHistoryResponse.builder().jobId(jobExecutionHistory.getJobId())
                 .executionResults(new ArrayList<>()).build();
 

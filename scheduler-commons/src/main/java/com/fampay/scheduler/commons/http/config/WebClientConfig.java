@@ -17,6 +17,7 @@ import java.util.Map;
 
 @Configuration
 public class WebClientConfig {
+
     @Bean
     public WebClient webClient(WebClientProperties props) {
         ConnectionProvider provider = ConnectionProvider.builder("custom")
