@@ -1,0 +1,52 @@
+logging:
+  level:
+    root: ERROR
+    com.fampay: INFO
+
+server:
+  port : 8080
+  tomcat:
+    mbeanregistry:
+      enabled: true
+
+
+job-producer-config:
+  configId: 1
+
+
+mongo-config:
+  address: "localhost:27017"
+  database: "job-scheduler"
+  username: "app_user"
+  password: "Uu7gYX8TiuaO0XDL"
+  srvMode: "false"
+  readPreference: "primary"
+
+sqs-config:
+  accessKey: ""
+  secretAccessKey: ""
+  queues:
+    local-job-queue:
+      topicQueueUrl: "http://localhost:9324/000000000000/local-job-queue"
+      consumerSetting:
+        maxNumberOfMessages: 10
+
+redis-config:
+  prefix: 'job-scheduler'
+  enabled: true
+  url: "redis://localhost:6379"
+
+management:
+  endpoints:
+    jmx:
+      exposure:
+        include: "*"
+    web:
+      exposure:
+        include: "*"
+    otlp:
+      metrics:
+        export:
+          enabled: false
+sms-config:
+  maxTemplateVariableSize: 30
